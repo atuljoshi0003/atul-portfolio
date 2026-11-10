@@ -1,0 +1,10 @@
+'use client';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
+import {useState} from 'react';
+import {ArrowUpRight,Menu,X,Linkedin,ArrowRight} from 'lucide-react';
+import {usePortfolio} from './data';
+const nav=[['About','/about'],['Experience','/experience'],['Projects','/projects'],['My Journey','/journey'],['Toolkit','/toolkit']];
+export function Header(){const path=usePathname(),[open,setOpen]=useState(false);return <header className="site-header"><div className="header-inner"><Link className="wordmark" href="/" onClick={()=>setOpen(false)}>atul joshi<span className="brand-dot">.</span></Link><nav className={open?'nav-links open':'nav-links'} aria-label="Main navigation">{nav.map(([label,url])=><Link key={url} className={path.startsWith(url)?'active':''} href={url} onClick={()=>setOpen(false)}>{label}</Link>)}<Link className="mobile-contact" href="/contact" onClick={()=>setOpen(false)}>Let’s talk <ArrowUpRight size={16}/></Link></nav><Link className="header-contact" href="/contact">Let’s talk <ArrowUpRight size={16}/></Link><button className="mobile-toggle" aria-label={open?'Close navigation':'Open navigation'} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></header>;}
+export function Footer(){const {data}=usePortfolio();return <footer><div className="footer-top"><div><Link className="wordmark" href="/">atul joshi<span className="brand-dot">.</span></Link><p>Building. Learning. Experimenting.</p></div><div className="footer-links"><Link href="/projects">Explore my work <ArrowUpRight size={15}/></Link><a href={data.profile.linkedin} target="_blank" rel="noreferrer">LinkedIn <Linkedin size={15}/></a><Link href="/contact">Get in touch <ArrowRight size={15}/></Link></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Atul Joshi</span><span>A work in progress. Just like me.</span><Link href="/admin">Workspace <ArrowUpRight size={12}/></Link></div></footer>;}
+export function ErrorBanner(){const {error}=usePortfolio();return error?<div className="content-error" role="status">{error}</div>:null;}

@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX `challenge_source_number` ON `internal_challenges` (`source`,`original_number`);--> statement-breakpoint
+CREATE UNIQUE INDEX `one_project_per_challenge` ON `projects` (`challenge_id`);

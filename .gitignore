@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+dist/
+.env*
+!.env.example
+.dev.vars*
+.wrangler/
+.sites-runtime/
+*.tsbuildinfo
+outputs/
+server/generated-assets.ts
+
+/node_modules

@@ -1,0 +1,21 @@
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import worker from '../dist/server/index.js';
+const sql=new DatabaseSync(':memory:');for(const f of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())sql.exec(readFileSync('drizzle/'+f,'utf8'));
+const DB={prepare(query){let args=[];const w={bind(...values){args=values;return w;},async all(){return{results:sql.prepare(query).all(...args)};},async first(){return sql.prepare(query).get(...args)||null;},async run(){return sql.prepare(query).run(...args);}};return w;}};
+const env={DB,OWNER_BOOTSTRAP:'enabled'};
+let checks=0;const call=path=>worker.fetch(new Request('https://portfolio.test'+path),env);
+const content=await call('/api/content');assert.equal(content.status,200);checks++;
+for(const path of ['/','/about','/experience','/projects','/journey','/toolkit','/contact','/admin']){const r=await call(path);assert.equal(r.status,200,path);assert.ok(r.headers.get('content-type').includes('text/html'));assert.ok((await r.text()).includes('<!DOCTYPE html>'));checks++;}
+assert.equal((await call('/projects/digital-portfolio')).status,200);checks++;
+assert.equal((await call('/projects/ai-workflow-experiment')).status,404);checks++;
+const sitemap=await(await call('/sitemap.xml')).text();assert.ok(sitemap.includes('/projects/digital-portfolio'));assert.ok(!sitemap.includes('hiveschool'));checks++;
+const robots=await(await call('/robots.txt')).text();assert.ok(robots.includes('Disallow: /admin'));checks++;
+assert.equal((await call('/admin')).headers.get('x-robots-tag'),'noindex, nofollow');checks++;
+const social=await call('/og.png');assert.equal(social.status,200);assert.equal(social.headers.get('content-type'),'image/png');checks++;
+for(const f of readdirSync('out/_next/static/chunks').filter(f=>f.endsWith('.js'))){const text=readFileSync('out/_next/static/chunks/'+f,'utf8');assert.ok(!text.includes('Give Claude, ChatGPT and Gemini the same task:'),'Private workbook leaked into a client chunk');}checks++;
+assert.equal((await call('/api/admin/source')).status,403);checks++;
+await worker.fetch(new Request('https://portfolio.test/api/admin/activate',{method:'POST',headers:{'oai-authenticated-user-id':'atul'}}),env);
+const archive=await worker.fetch(new Request('https://portfolio.test/api/admin/source',{headers:{'oai-authenticated-user-id':'atul'}}),env);assert.equal(archive.status,200);assert.equal(archive.headers.get('content-type'),'application/zip');const bytes=new Uint8Array(await archive.arrayBuffer());assert.equal(bytes[0],0x50);assert.equal(bytes[1],0x4b);checks++;
+console.log(`${checks} built-Worker route, metadata, asset and privacy checks passed.`);

@@ -1,0 +1,16 @@
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+const base=()=>({id:text('id').primaryKey(),data:text('data').notNull(),published:integer('published').notNull().default(0)});
+export const profile=sqliteTable('profile',base());
+export const experiences=sqliteTable('experiences',base());
+export const categories=sqliteTable('categories',base());
+export const internalChallenges=sqliteTable('internal_challenges',{...base(),source:text('source').notNull(),originalNumber:text('original_number').notNull()},t=>[uniqueIndex('challenge_source_number').on(t.source,t.originalNumber)]);
+export const projects=sqliteTable('projects',{...base(),categoryId:text('category_id').references(()=>categories.id),challengeId:text('challenge_id').references(()=>internalChallenges.id)},t=>[uniqueIndex('one_project_per_challenge').on(t.challengeId)]);
+export const skills=sqliteTable('skills',base());
+export const tools=sqliteTable('tools',base());
+export const journey=sqliteTable('journey_milestones',base());
+export const reflections=sqliteTable('learning_reflections',{...base(),milestoneId:text('milestone_id').references(()=>journey.id)});
+export const media=sqliteTable('project_media',{...base(),projectId:text('project_id').references(()=>projects.id)});
+export const contacts=sqliteTable('contact_submissions',base());
+export const admins=sqliteTable('admins',{id:text('id').primaryKey(),userId:text('user_id').notNull()});
+export const limits=sqliteTable('rate_limits',{id:text('id').primaryKey(),count:integer('count').notNull(),expires:integer('expires').notNull()});
+export const meta=sqliteTable('metadata',{id:text('id').primaryKey(),value:text('value').notNull()});
