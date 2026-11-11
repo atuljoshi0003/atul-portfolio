@@ -5,7 +5,7 @@ export class Store {
  constructor(public env:Env){}
  async rest(path:string,init:RequestInit={}):Promise<any>{
   const r=await fetch(`${this.env.SUPABASE_URL}/rest/v1/${path}`,{...init,headers:{apikey:this.env.SUPABASE_SERVICE_ROLE_KEY!,Authorization:`Bearer ${this.env.SUPABASE_SERVICE_ROLE_KEY}`,'Content-Type':'application/json',Prefer:'return=representation',...init.headers}});
-  if(!r.ok)throw new Error('Database operation failed');return r.status===204?null:r.json();
+  if(!r.ok)throw new Error('Database operation failed');const text=await r.text();return text?JSON.parse(text):null;
  }
  async list(collection:string,publicOnly=false){
   const table=tables[collection];if(!table)throw new Error('Invalid collection');
